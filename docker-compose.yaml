@@ -1,0 +1,14 @@
+version: "2"
+services:
+  influxgateway:
+    build: .
+    image: acrelle/rpi-influxgateway
+    container_name: influxgateway
+    restart:  unless-stopped
+    ports:
+      - 9956:80
+    environment:
+      - influx_username=username
+      - influx_password=password
+      - influx_url=http://127.0.0.1:8086
+      - influx_database=database_name

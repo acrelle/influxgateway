@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <UserSecretsId>9002eb1a-3646-4d8f-92ed-6f4f09d003a9</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="InfluxDB.Net.Core" Version="1.1.22-beta" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.0-rc1-final" />
+    <PackageReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.0.2" />
+  </ItemGroup>
+
+</Project>
