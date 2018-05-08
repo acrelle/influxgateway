@@ -10,7 +10,7 @@ COPY InfluxGateway/ ./
 RUN dotnet publish -c Release -o out
 
 # Build runtime image
-FROM microsoft/dotnet:2.1-aspnetcore-runtime-alpine
+FROM microsoft/dotnet:2.1-aspnetcore-runtime-stretch-slim-arm32v7
 LABEL maintainer=anthony@relle.co.uk
 
 WORKDIR /app

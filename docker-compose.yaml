@@ -2,9 +2,9 @@ version: "2"
 services:
   influxgateway:
     build: .
-    image: acrelle/rpi-influxgateway
+    image: acrelle/influxgateway
     container_name: influxgateway
-    restart:  unless-stopped
+    restart: unless-stopped
     ports:
       - 9956:80
     environment:
