@@ -19,7 +19,7 @@ https://hub.docker.com/r/acrelle/influxgateway/
 
 ## Usage
 
-Run the imaage using the below, or edit and use the Docker Compose further down.
+Run the image using the below, or edit and use the Docker Compose further down.
 
 ```
 docker run -d -p 8080:80 \
