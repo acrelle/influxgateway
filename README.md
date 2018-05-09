@@ -19,9 +19,7 @@ https://hub.docker.com/r/acrelle/influxgateway/
 
 ## Usage
 
-Edit docker-compose and change the environment variables to match your influx installation.
-
-Run the Docker using the below Docker Compose on a Raspberry Pi, e.g.
+Run the imaage using the below, or edit and use the Docker Compose further down.
 
 ```
 docker run -d -p 8080:80 \
