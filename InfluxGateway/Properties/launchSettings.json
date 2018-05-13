@@ -13,7 +13,7 @@
       "launchBrowser": true,
       "launchUrl": "api/influx",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_ENVIRONMENT": "Development"
 
       }
     },
@@ -22,7 +22,7 @@
       "launchBrowser": true,
       "launchUrl": "api/influx",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:21975/"
     }
