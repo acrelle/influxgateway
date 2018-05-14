@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="InfluxDB.Net.Core" Version="1.1.22-beta" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.0-rc1-final" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.0.2" />
   </ItemGroup>
 

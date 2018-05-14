@@ -34,8 +34,10 @@ namespace InfluxGateway
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseHsts();
+            else
+            {
+                app.UseHsts();
+            }
             app.UseHttpsRedirection();
             app.UseMvc();
         }
