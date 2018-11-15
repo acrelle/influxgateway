@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using InfluxDB.Net;
-using InfluxDB.Net.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -22,48 +20,13 @@ namespace InfluxGateway.Controllers
     {
         private IConfiguration Configuration { get; }
         private ILogger Logger { get; }
+        public IInfluxDatabase InfluxDatabase { get; }
 
-        // The following four settings should be defined as envinronmental variables at runtime 
-        // or optionally the SecretManager in Development.
-        private string InfluxUrl => Configuration["influx_url"];
-        private string InfluxUsername => Configuration["influx_username"];
-        private string InfluxPassword => Configuration["influx_password"];
-        private string InfluxDatabase => Configuration["influx_database"];
-
-        // This is stored in the appsettings.json.
-        private string InfluxQuery => Configuration["influxgateway:query"];
-
-        public InfluxController(IConfiguration configuration, ILogger<InfluxController> logger)
+        public InfluxController(IConfiguration configuration, ILogger<InfluxController> logger, IInfluxDatabase influxDatabase)
         {
             Configuration = configuration;
             Logger = logger;
-
-            // Error checking.
-            if (String.IsNullOrEmpty(InfluxUsername))
-                Logger.LogWarning("No username has been supplied - ensure the environmental variables have been set if necessary (inspect the dockerfile).");
-            if (!Uri.TryCreate(InfluxUrl, UriKind.Absolute, out var result))
-                Logger.LogError("The Influx URL is invalid: {url}", InfluxUrl);
-
-        }
-
-        /// <summary>
-        /// TODO: Sanitise user input to prevent command injection.
-        /// </summary>
-        /// <param name="sensorName"></param>
-        /// <returns></returns>
-        private String BuildQuery(String sensorName)
-        {
-            return InfluxQuery.Replace("%s", sensorName);
-        }
-
-        /// <summary>
-        /// Construct a Influx Client
-        /// </summary>
-        /// <returns></returns>
-        private InfluxDb GetInfluxConnection()
-        {
-            Logger.LogDebug("New connection to be created against {url}", InfluxUrl);
-            return new InfluxDb(InfluxUrl, InfluxUsername, InfluxPassword);
+            InfluxDatabase = influxDatabase;
         }
 
         /// <summary>
@@ -74,8 +37,6 @@ namespace InfluxGateway.Controllers
         /// <returns></returns>
         private async Task<List<KeyValuePair<String, String>>> GetInfluxValuesAsync(Func<IConfigurationSection, bool> selector = null)
         {
-            var _client = GetInfluxConnection();
-
             // A list of friendly names mapped to the entity_id in influx, e.g. ...
             //
             //"sensors": {
@@ -90,12 +51,12 @@ namespace InfluxGateway.Controllers
             if (selector != null)
                 sensorList = sensorList.Where(selector);
 
-            // Generate an individual Influx HTTP API query against each eneity (rather than perform multiple queries in a single call).
-            var resultList = new List<Tuple<String, String, Task<List<Serie>>>>();
+            // Generate an individual Influx HTTP API query against each entity (rather than perform multiple queries in a single call).
+            var resultList = new List<Tuple<string, string, Task<string>>>();
             foreach (var sensorItem in sensorList)
             {
                 Logger.LogDebug("Querying {key} using influx entity_id {value}.", sensorItem.Key, sensorItem.Value);
-                resultList.Add(Tuple.Create(sensorItem.Key, sensorItem.Value, _client.QueryAsync(InfluxDatabase, BuildQuery(sensorItem.Value))));
+                resultList.Add(Tuple.Create(sensorItem.Key, sensorItem.Value, InfluxDatabase.GetFirstResultForInfluxQuery(sensorItem.Value)));
             }
 
             // Wait to complete.
@@ -103,12 +64,10 @@ namespace InfluxGateway.Controllers
             Logger.LogDebug("{count} queries complete.", resultList.Count);
 
             // Parse the results of each query ready to return to the caller.
-
             var results = new List<KeyValuePair<string, string>>();
             foreach (var item in resultList)
             {
-                var x = item.Item3.Result.FirstOrDefault().Values[0];
-                results.Add(new KeyValuePair<string, string>(item.Item1, x[1].ToString()));
+                results.Add(new KeyValuePair<string, string>(item.Item1, item.Item3.Result));
             }
 
             return results;
