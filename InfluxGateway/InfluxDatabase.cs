@@ -2,7 +2,6 @@
 using InfluxGateway.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,31 +11,15 @@ namespace InfluxGateway
     {
 
         private InfluxDb InfluxDb { get; }
-
-        // The following four settings should be defined as envinronmental variables at runtime 
-        // or optionally the SecretManager in Development.
-        private string InfluxUrl => Configuration["influx_url"];
-        private string InfluxUsername => Configuration["influx_username"];
-        private string InfluxPassword => Configuration["influx_password"];
-        private string InfluxDatabaseConnection => Configuration["influx_database"];
-        // This is stored in the appsettings.json.
-        private string InfluxQuery => Configuration["influxgateway:query"];
-
-
         private IConfiguration Configuration { get; }
         private ILogger<InfluxController> Logger { get; }
+        private IInfluxConnectionSettings InfluxConnectionSettings { get; }
 
-        public InfluxDatabase(IConfiguration configuration, ILogger<InfluxController> logger)
+        public InfluxDatabase(IConfiguration configuration, ILogger<InfluxController> logger, IInfluxConnectionSettings influxConnectionSettings)
         {
             Configuration = configuration;
             Logger = logger;
-
-            // Error checking.
-            if (string.IsNullOrEmpty(InfluxUsername))
-                Logger.LogWarning("No username has been supplied - ensure the environmental variables have been set if necessary (inspect the dockerfile).");
-            if (!Uri.TryCreate(InfluxUrl, UriKind.Absolute, out var result))
-                Logger.LogError("The Influx URL is invalid: {url}", InfluxUrl);
-
+            InfluxConnectionSettings = influxConnectionSettings;
             InfluxDb = GetInfluxConnection();
 
         }
@@ -48,12 +31,12 @@ namespace InfluxGateway
         /// <returns></returns>
         private string BuildQuery(string sensorName)
         {
-            return InfluxQuery.Replace("%s", sensorName);
+            return InfluxConnectionSettings.InfluxQuery.Replace("%s", sensorName);
         }
 
         public async Task<string> GetFirstResultForInfluxQuery(string query)
         {
-            var x = await InfluxDb.QueryAsync(InfluxDatabaseConnection, BuildQuery(query));
+            var x = await InfluxDb.QueryAsync(InfluxConnectionSettings.InfluxDatabaseConnection, BuildQuery(query));
             return x.FirstOrDefault().Values[0][1].ToString();
         }
 
@@ -63,8 +46,8 @@ namespace InfluxGateway
         /// <returns></returns>
         private InfluxDb GetInfluxConnection()
         {
-            Logger.LogDebug("New connection to be created against {url}", InfluxUrl);
-            return new InfluxDb(InfluxUrl, InfluxUsername, InfluxPassword);
+            Logger.LogDebug("New connection to be created against {url}", InfluxConnectionSettings.InfluxUrl);
+            return new InfluxDb(InfluxConnectionSettings.InfluxUrl, InfluxConnectionSettings.InfluxUsername, InfluxConnectionSettings.InfluxPassword);
         }
 
     }

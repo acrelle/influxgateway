@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using InfluxDB.Net;
+using InfluxDB.Net.Contracts;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +24,7 @@ namespace InfluxGateway
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddScoped<IInfluxDatabase, InfluxDatabase>();
+            services.AddSingleton<IInfluxConnectionSettings, InfluxConnectionSettings>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
