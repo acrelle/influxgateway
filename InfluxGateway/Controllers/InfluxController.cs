@@ -18,15 +18,15 @@ namespace InfluxGateway.Controllers
     [Route("api/[controller]")]
     public class InfluxController : Controller
     {
-        private IConfiguration Configuration { get; }
-        private ILogger Logger { get; }
-        public IInfluxDatabase InfluxDatabase { get; }
+        private IConfiguration _configuration;
+        private ILogger<InfluxController> _logger;
+        public IInfluxDatabase _influxDatabase;
 
         public InfluxController(IConfiguration configuration, ILogger<InfluxController> logger, IInfluxDatabase influxDatabase)
         {
-            Configuration = configuration;
-            Logger = logger;
-            InfluxDatabase = influxDatabase;
+            _configuration = configuration;
+            _logger = logger;
+            _influxDatabase = influxDatabase;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace InfluxGateway.Controllers
             //    "Office Temperature": "climate_4_temperature",
             //    "Bedroom Temperature": "climate_5_temperature"
             //    }
-            var sensorList = Configuration.GetSection("influxgateway:sensors").GetChildren();
+            var sensorList = _configuration.GetSection("influxgateway:sensors").GetChildren();
 
             // Allow a filter
             if (selector != null)
@@ -55,13 +55,13 @@ namespace InfluxGateway.Controllers
             var resultList = new List<Tuple<string, string, Task<string>>>();
             foreach (var sensorItem in sensorList)
             {
-                Logger.LogDebug("Querying {key} using influx entity_id {value}.", sensorItem.Key, sensorItem.Value);
-                resultList.Add(Tuple.Create(sensorItem.Key, sensorItem.Value, InfluxDatabase.GetFirstResultForInfluxQuery(sensorItem.Value)));
+                _logger.LogDebug("Querying {key} using influx entity_id {value}.", sensorItem.Key, sensorItem.Value);
+                resultList.Add(Tuple.Create(sensorItem.Key, sensorItem.Value, _influxDatabase.GetFirstResultForInfluxQuery(sensorItem.Value)));
             }
 
             // Wait to complete.
             await Task.WhenAll(resultList.Select(y => y.Item3).ToList());
-            Logger.LogDebug("{count} queries complete.", resultList.Count);
+            _logger.LogDebug("{count} queries complete.", resultList.Count);
 
             // Parse the results of each query ready to return to the caller.
             var results = new List<KeyValuePair<string, string>>();
@@ -76,11 +76,11 @@ namespace InfluxGateway.Controllers
 
         // GET api/influx
         [HttpGet]
-        public async Task<IEnumerable<KeyValuePair<String,String>>> Get()
+        public async Task<IEnumerable<KeyValuePair<String, String>>> Get()
         {
-            Logger.LogInformation("Client is requesting all values.");
+            _logger.LogInformation("Client is requesting all values.");
 
-            var resultList =  await GetInfluxValuesAsync();
+            var resultList = await GetInfluxValuesAsync();
 
             return resultList;
         }
@@ -90,32 +90,11 @@ namespace InfluxGateway.Controllers
         [HttpGet("{id}")]
         public async Task<KeyValuePair<String, String>> Get(String id)
         {
-            Logger.LogInformation("Client is requesting value of: {val}.", id);
+            _logger.LogInformation("Client is requesting value of: {val}.", id);
 
             var resultList = await GetInfluxValuesAsync(x => x.Key.Equals(id, StringComparison.InvariantCultureIgnoreCase));
 
             return resultList.FirstOrDefault();
-        }
-
-        // POST api/influx
-        [HttpPost]
-        public void Post([FromBody]string value)
-        {
-            // Not implemented
-        }
-
-        // PUT api/influx/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-            // Not implemented
-        }
-
-        // DELETE api/influx/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-            // Not implemented
         }
     }
 }

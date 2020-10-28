@@ -2,9 +2,10 @@
 
 Part experimentation, part usage by my home automation setup to expose limited influx data to Alexa lambda functions.
 
-Provides a web api created with ASP.NET Core 2.1 (RC1). Repo includes multiple Dockerfiles to cover amd64 and arm builds.
+Provides a web api created with ASP.NET Core 3.1. Repo includes multiple Dockerfiles to cover amd64 and arm builds.
 
 ## Source
+
 Source: https://github.com/acrelle/influxgateway
 
 ## Build
@@ -21,7 +22,7 @@ https://hub.docker.com/r/acrelle/influxgateway/
 
 Run the image using the below, or edit and use the Docker Compose further down.
 
-```
+```docker
 docker run -d -p 8080:80 \
       -e influx_username=username \
       -e influx_password=password \
