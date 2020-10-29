@@ -1,9 +1,9 @@
-﻿using InfluxDB.Net;
-using InfluxDB.Net.Contracts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using InfluxDB.Net;
+using InfluxDB.Net.Contracts;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;

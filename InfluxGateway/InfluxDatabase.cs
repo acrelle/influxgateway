@@ -1,9 +1,9 @@
-﻿using InfluxDB.Net;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using InfluxDB.Net;
 using InfluxGateway.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace InfluxGateway
 {

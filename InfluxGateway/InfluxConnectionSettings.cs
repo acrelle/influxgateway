@@ -1,7 +1,7 @@
-﻿using InfluxGateway.Controllers;
+﻿using System;
+using InfluxGateway.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace InfluxGateway
 {
