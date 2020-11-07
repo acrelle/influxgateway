@@ -1,0 +1,43 @@
+name: influxgateway docker publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+  schedule:
+    - cron: "0 4 2 * *"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  publish:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Docker Login
+        # You may pin to the exact commit or the version.
+        # uses: docker/login-action@adb73476b6e06caddec5db0bc1deacbec8cdd947
+        uses: docker/login-action@v1.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUb_PASSWORD }}
+
+      - name: Clean install dependencies and build
+        run: |
+          docker build --build-arg PLATFORM=linux-amd64 -t acrelle/influxgateway:linux-amd64 -f Dockerfile .
+          docker build --build-arg PLATFORM=linux-arm -t acrelle/influxgateway:linux-arm -f Dockerfile.linux-arm32v7 .
+
+          docker push acrelle/influxgateway:linux-amd64
+          docker push acrelle/influxgateway:linux-arm
+
+          wget https://github.com/estesp/manifest-tool/releases/download/v1.0.3/manifest-tool-linux-amd64
+          mv manifest-tool-linux-amd64 manifest-tool
+          chmod +x manifest-tool
+          # Push manifest-list
+          ./manifest-tool push from-args --platforms linux/amd64,linux/arm --template "acrelle/influxgateway:OS-ARCH" --target "acrelle/influxgateway:$GITHUB_RUN_ID"
+          ./manifest-tool push from-args --platforms linux/amd64,linux/arm --template "acrelle/influxgateway:OS-ARCH" --target "acrelle/influxgateway:latest"
