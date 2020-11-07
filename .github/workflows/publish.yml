@@ -1,4 +1,4 @@
-name: influxgateway docker publish
+name: Docker Image Publish
 
 on:
   workflow_dispatch:
