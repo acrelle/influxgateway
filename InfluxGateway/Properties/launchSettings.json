@@ -1,22 +1,5 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:21974/",
-      "sslPort": 44317
-    }
-  },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "api/influx",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-
-      }
-    },
     "InfluxGateway": {
       "commandName": "Project",
       "launchBrowser": true,

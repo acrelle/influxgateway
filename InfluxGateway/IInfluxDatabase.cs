@@ -1,11 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿namespace InfluxGateway;
 
-namespace InfluxGateway
+public interface IInfluxDatabase
 {
-    public interface IInfluxDatabase
-    {
 
-        Task<string> GetFirstResultForInfluxQuery(string query);
+    Task<string> GetFirstResultForInfluxQuery(string query);
 
-    }
 }
+
