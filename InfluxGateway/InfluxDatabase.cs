@@ -1,18 +1,15 @@
-﻿
-namespace InfluxGateway;
+﻿namespace InfluxGateway;
 
 public class InfluxDatabase : IInfluxDatabase
 {
     private readonly InfluxDb _influxDb;
     private readonly ILogger<InfluxController> _logger;
-    private readonly IConfiguration _configuration;
-    private readonly IInfluxConnectionSettings _influxConnectionSettings;
+    private readonly InfluxConnectionSettings _influxConnectionSettings;
 
-    public InfluxDatabase(IConfiguration configuration, ILogger<InfluxController> logger, IInfluxConnectionSettings influxConnectionSettings)
+    public InfluxDatabase(ILogger<InfluxController> logger, IOptions<InfluxConnectionSettings> influxConnectionSettings)
     {
-        _configuration = configuration;
         _logger = logger;
-        _influxConnectionSettings = influxConnectionSettings;
+        _influxConnectionSettings = influxConnectionSettings.Value;
         _influxDb = GetInfluxConnection();
     }
 
@@ -35,11 +32,9 @@ public class InfluxDatabase : IInfluxDatabase
     /// <summary>
     /// Construct a Influx Client
     /// </summary>
-    /// <returns></returns>
     private InfluxDb GetInfluxConnection()
     {
-        _logger.LogDebug("New connection to be created against {url}", _influxConnectionSettings.InfluxUrl);
+        _logger.LogDebug($"New connection to be created against {_influxConnectionSettings.InfluxUrl}");
         return new InfluxDb(_influxConnectionSettings.InfluxUrl, _influxConnectionSettings.InfluxUsername, _influxConnectionSettings.InfluxPassword);
     }
-
 }
