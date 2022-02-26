@@ -10,13 +10,16 @@
 [Route("api/[controller]")]
 public class InfluxController : Controller
 {
-    private IConfiguration _configuration;
-    private ILogger<InfluxController> _logger;
+    private readonly InfluxConnectionSettings _influxConnectionSettings;
+    private readonly ILogger<InfluxController> _logger;
     public IInfluxDatabase _influxDatabase;
 
-    public InfluxController(IConfiguration configuration, ILogger<InfluxController> logger, IInfluxDatabase influxDatabase)
+    public InfluxController(
+        IOptions<InfluxConnectionSettings> influxConnectionSettings,
+        ILogger<InfluxController> logger,
+        IInfluxDatabase influxDatabase)
     {
-        _configuration = configuration;
+        _influxConnectionSettings = influxConnectionSettings.Value;
         _logger = logger;
         _influxDatabase = influxDatabase;
     }
@@ -27,7 +30,7 @@ public class InfluxController : Controller
     /// <param name="entityIdList"></param>
     /// <param name="selector"></param>
     /// <returns></returns>
-    private async Task<List<KeyValuePair<String, String>>> GetInfluxValuesAsync(Func<IConfigurationSection, bool> selector = null)
+    private async Task<IList<(string, string)>> GetInfluxValuesAsync(Func<KeyValuePair<string, string>, bool> selector = null)
     {
         // A list of friendly names mapped to the entity_id in influx, e.g. ...
         //
@@ -37,29 +40,25 @@ public class InfluxController : Controller
         //    "Office Temperature": "climate_4_temperature",
         //    "Bedroom Temperature": "climate_5_temperature"
         //    }
-        var sensorList = _configuration.GetSection("influxgateway:sensors").GetChildren();
-
-        // Allow a filter
-        if (selector != null)
-            sensorList = sensorList.Where(selector);
+        var sensorList = _influxConnectionSettings.Sensors.Where(x => selector is null || selector(x));
 
         // Generate an individual Influx HTTP API query against each entity (rather than perform multiple queries in a single call).
-        var resultList = new List<Tuple<string, string, Task<string>>>();
+        var resultList = new List<(string Sensor, Task<string>)>();
         foreach (var sensorItem in sensorList)
         {
-            _logger.LogDebug("Querying {key} using influx entity_id {value}.", sensorItem.Key, sensorItem.Value);
-            resultList.Add(Tuple.Create(sensorItem.Key, sensorItem.Value, _influxDatabase.GetFirstResultForInfluxQuery(sensorItem.Value)));
+            _logger.LogDebug($"Querying {sensorItem.Key} using influx entity_id {sensorItem.Value}.");
+            resultList.Add(new(sensorItem.Key, _influxDatabase.GetFirstResultForInfluxQuery(sensorItem.Value)));
         }
 
         // Wait to complete.
-        await Task.WhenAll(resultList.Select(y => y.Item3).ToList());
-        _logger.LogDebug("{count} queries complete.", resultList.Count);
+        await Task.WhenAll(resultList.Select(y => y.Item2).ToList());
+        _logger.LogDebug($"{resultList.Count} queries complete.");
 
         // Parse the results of each query ready to return to the caller.
-        var results = new List<KeyValuePair<string, string>>();
+        var results = new List<(string Sensor, string Result)>();
         foreach (var item in resultList)
         {
-            results.Add(new KeyValuePair<string, string>(item.Item1, item.Item3.Result));
+            results.Add(new(item.Sensor, item.Item2.Result));
         }
 
         return results;
@@ -68,24 +67,22 @@ public class InfluxController : Controller
 
     // GET api/influx
     [HttpGet]
-    public async Task<IEnumerable<KeyValuePair<String, String>>> Get()
+    public async Task<IActionResult> Get()
     {
         _logger.LogInformation("Client is requesting all values.");
-
-        var resultList = await GetInfluxValuesAsync();
-
-        return resultList;
+        var results = await GetInfluxValuesAsync();
+        return Ok(results); ;
     }
 
 
     // GET api/influx/sensor+name
     [HttpGet("{id}")]
-    public async Task<KeyValuePair<String, String>> Get(String id)
+    public async Task<IActionResult> Get(string id)
     {
-        _logger.LogInformation("Client is requesting value of: {val}.", id);
+        _logger.LogInformation($"Client is requesting value of: {id}.");
 
         var resultList = await GetInfluxValuesAsync(x => x.Key.Equals(id, StringComparison.InvariantCultureIgnoreCase));
 
-        return resultList.FirstOrDefault();
+        return Ok(resultList.FirstOrDefault());
     }
 }

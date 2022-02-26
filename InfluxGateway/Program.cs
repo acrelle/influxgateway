@@ -1,9 +1,8 @@
-﻿
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<InfluxGateway.IInfluxDatabase, InfluxGateway.InfluxDatabase>();
-builder.Services.AddSingleton<InfluxGateway.IInfluxConnectionSettings, InfluxGateway.InfluxConnectionSettings>();
+builder.Services.AddScoped<IInfluxDatabase, InfluxDatabase>();
+builder.Services.Configure<InfluxConnectionSettings>(builder.Configuration.GetSection(nameof(InfluxConnectionSettings)));
 
 var app = builder.Build();
 
@@ -13,12 +12,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-
 app.UseRouting();
-
-app.UseAuthorization();
-
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();

@@ -1,34 +1,29 @@
 ﻿namespace InfluxGateway;
 
-internal class InfluxConnectionSettings : IInfluxConnectionSettings
+public class InfluxConnectionSettings
 {
-
     // The following four settings should be defined as environmental variables at runtime 
     // or optionally the SecretManager in Development.
-    public string InfluxUrl => _configuration["influx_url"];
-    public string InfluxUsername => _configuration["influx_username"];
-    public string InfluxPassword => _configuration["influx_password"];
-    public string InfluxDatabaseConnection => _configuration["influx_database"];
-    // This is stored in the appsettings.json.
-    public string InfluxQuery => _configuration["influxgateway:query"];
+    public string InfluxUrl { get; set; }
+    public string InfluxUsername { get; set; }
+    public string InfluxPassword { get; set; }
+    public string InfluxDatabaseConnection { get; set; }
+    public string InfluxQuery { get; set; }
+    public Dictionary<string, string> Sensors { get; set; }
 
-    public IConfiguration _configuration;
-    public ILogger<InfluxController> _logger { get; }
-
-    public InfluxConnectionSettings(IConfiguration configuration, ILogger<InfluxController> logger)
+    public bool Validate()
     {
-        _configuration = configuration;
-        _logger = logger;
-
-        // Error checking.
         if (string.IsNullOrEmpty(InfluxUsername))
         {
-            _logger.LogWarning("No username has been supplied - ensure the environmental variables have been set if necessary (inspect the dockerfile).");
+            Console.WriteLine("No username has been supplied - ensure the environmental variables have been set if necessary (inspect the dockerfile).");
+            return false;
         }
-        if (!Uri.TryCreate(InfluxUrl, UriKind.Absolute, out var result))
+        if (!Uri.TryCreate(InfluxUrl, UriKind.Absolute, out var _))
         {
-            _logger.LogError("The Influx URL is invalid: {url}", InfluxUrl);
+            Console.WriteLine($"The Influx URL is invalid: {InfluxUrl}");
+            return false;
         }
+        return true;
     }
 }
 
