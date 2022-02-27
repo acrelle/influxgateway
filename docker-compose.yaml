@@ -8,7 +8,7 @@ services:
     ports:
       - 9956:80
     environment:
-      - influx_username=username
-      - influx_password=password
-      - influx_url=http://127.0.0.1:8086
-      - influx_database=database_name
+      - influxconnectionsettings_influxusername=username
+      - influxconnectionsettings_influxpassword=password
+      - influxconnectionsettings_influxurl=http://127.0.0.1:8086
+      - influxconnectionsettings_influxdatabase=database_name
