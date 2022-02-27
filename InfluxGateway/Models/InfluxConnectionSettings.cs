@@ -1,4 +1,4 @@
-﻿namespace InfluxGateway;
+﻿namespace InfluxGateway.Models;
 
 public class InfluxConnectionSettings
 {
